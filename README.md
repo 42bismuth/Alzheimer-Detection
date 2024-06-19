@@ -43,8 +43,9 @@ To set up the project locally, follow these steps:
     ```bash
     pip install -r requirements.txt
     ```
-    
-4.  **Install dependencies for the frontend**
+
+4. **Install dependencies for the frontend**
+
     ```bash
     cd client && npm i
     ```
@@ -85,11 +86,11 @@ Description of the model training process:
 
 - **Training:** Information on how the model was trained, including hyperparameters, training duration, etc.
 - **Model Training:** Train machine learning models to detect early signs of Alzheimer's from speech data. Models used:
-    1.  Random Forest
-    2.  SVC+GRID Search
-    3.  Naive-Bayes SVC
-    4.  LSTM
-    5.  Bi-directional LSTM 
+    1. Random Forest
+    2. SVC+GRID Search
+    3. Naive-Bayes SVC
+    4. LSTM
+    5. Bi-directional LSTM
 - **Evaluation:** Metrics and results from evaluating the model on the test set and assess model performance using accuracy and F1 scores.
 
 ## Results
@@ -98,7 +99,7 @@ Summary of the project's results:
 
 - **Accuracy:** Overall accuracy of the model is 84%.
 - **ROC-AUC:** The ROC-AUC curve for the NB_SVC model obtained is:
-![](images/NB-SVC_ROC.jpg)
+![roc](images/NB-SVC_ROC.jpg)
 
 ## Contributing
 
@@ -117,19 +118,24 @@ Please ensure your code adheres to our coding standards and include relevant tes
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
+
 We would like to express our gratitude to the following:
 
 - **DementiaBank:** Special thanks to Dr. Brian MacWhinney for providing access to the DementiaBank dataset.
 - **AssemblyAI:** For their powerful speech-to-text API SDK, which facilitated the transcription of audio data.
 
 ## Website Interface
+
 Here are some screenshots of the website UI:
 
 ### Home Page
+
 ![Home Page](images/homepage.png)
 
 ### Analysis Page
+
 ![Analysis Page](images/analysispage.png)
 
 ### Results Page
+
 ![Results Page](images/resultspage.png)

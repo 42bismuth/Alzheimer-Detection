@@ -1,10 +1,10 @@
-import MicRecorder from "mic-recorder-to-mp3"
-import { useEffect, useState, useRef } from "react"
-import { useNavigate } from "react-router-dom"
-import { ReactMic } from "react-mic"
-import AudioTimer from "./AudioTimer"
-import axios from "axios"
-import './RecorderStyles.css'
+/* eslint-disable no-unused-vars */
+import MicRecorder from "mic-recorder-to-mp3";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import AudioTimer from "./AudioTimer";
+import axios from "axios";
+import './RecorderStyles.css';
 
 const PORT = process.env.REACT_APP_PORT;
 const ASSEMBLY_API_KEY = process.env.REACT_APP_ASSEMBLYAI_KEY;
@@ -16,169 +16,162 @@ const assembly = axios.create({
         authorization: ASSEMBLY_API_KEY,
         "content-type": "application/json",
     },
-})
+});
 
 const App = () => {
-    const navigate = useNavigate()
-    const recorder = useRef(null) //Recorder
-    const audioPlayer = useRef(null) //Ref for the HTML Audio
-    const [elapsedTime, setElapsedTime] = useState(0)
-    const [blobURL, setBlobUrl] = useState(null)
-    const [audioFile, setAudioFile] = useState(null)
-    const [isRecording, setIsRecording] = useState(false)
+    const navigate = useNavigate();
+    const recorder = useRef(null); // Recorder
+    const audioPlayer = useRef(null); // Ref for the HTML Audio
+    const [elapsedTime, setElapsedTime] = useState(0);
+    const [blobURL, setBlobUrl] = useState(null);
+    const [audioFile, setAudioFile] = useState(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [uploadURL, setUploadURL] = useState("");
+    const [transcriptID, setTranscriptID] = useState("");
+    const [transcriptData, setTranscriptData] = useState(null);
+    const [transcript, setTranscript] = useState("");
 
     useEffect(() => {
-        recorder.current = new MicRecorder({ bitRate: 128 })
-    }, [])
+        recorder.current = new MicRecorder({ bitRate: 128 });
+    }, []);
 
     const startRecording = () => {
-        setElapsedTime(0)
-        setTranscript(null)
-        setTranscriptData(null)
-        setTranscriptID(null)
+        setElapsedTime(0);
+        setTranscript("");
+        setTranscriptData(null);
+        setTranscriptID("");
         recorder.current.start().then(() => {
-            setIsRecording(true)
-        })
-    }
+            setIsRecording(true);
+        });
+    };
 
     const stopRecording = () => {
-        recorder.current
-            .stop()
-            .getMp3()
-            .then(([buffer, blob]) => {
-                const file = new File(buffer, "audio.mp3", {
-                    type: blob.type,
-                    lastModified: Date.now(),
-                })
-                const newBlobUrl = URL.createObjectURL(blob)
-                setBlobUrl(newBlobUrl)
-                setIsRecording(false)
-                setAudioFile(file)
-            })
-            .catch((e) => console.log(e))
-    }
+        recorder.current.stop().getMp3().then(([buffer, blob]) => {
+            const file = new File(buffer, "audio.mp3", {
+                type: blob.type,
+                lastModified: Date.now(),
+            });
+            const newBlobUrl = URL.createObjectURL(blob);
+            setBlobUrl(newBlobUrl);
+            setIsRecording(false);
+            setAudioFile(file);
+        }).catch((e) => console.log(e));
+        setElapsedTime(0)
+    };
 
-    // AssemblyAI API
-    // State variables
-    const [uploadURL, setUploadURL] = useState("")
-    const [transcriptID, setTranscriptID] = useState("")
-    const [transcriptData, setTranscriptData] = useState("")
-    const [transcript, setTranscript] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
-
-    // Upload the Audio File and retrieve the Upload URL
-    useEffect(() => {
+    const uploadAudioFile = async () => {
         if (audioFile) {
-            assembly
-                .post("/upload", audioFile)
-                .then((res) => setUploadURL(res.data.upload_url))
-                .catch((err) => console.error(err))
-        }
-    }, [audioFile])
-
-    // Periodically check the status of the Transcript
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (transcriptData.status !== "completed" && isLoading) {
-                checkStatusHandler()
-            } else {
-                setIsLoading(false)
-                setTranscript(transcriptData.text)
-                clearInterval(interval)
+            try {
+                const formData = new FormData();
+                formData.append('file', audioFile);
+                const res = await assembly.post("/upload", formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                setUploadURL(res.data.upload_url);
+                return res.data.upload_url;
+            } catch (err) {
+                console.error(err);
             }
-        }, 5000)
-        return () => clearInterval(interval)
-    }, [transcriptID, transcriptData])
-
-    // Submit the Upload URL to AssemblyAI and retrieve the Transcript ID
-    const submitTranscriptionHandler = () => {
-        assembly
-            .post("/transcript", {
-                audio_url: uploadURL,
-            })
-            .then(async (res) => {
-                setTranscriptID(res.data.id)
-
-                checkStatusHandler()
-                console.log('Transcript generated successfully:', transcriptData);
-            }).then(async () => {
-                predictHandler()
-            })
-            .catch((err) => console.error(err))
-    }
-
-    const predictHandler = async () => {
-        if(transcriptData.status === "completed" && transcript) {
-            setTranscript(transcriptData.text)
-            const requestData = {
-                "data": JSON.stringify(transcript),
-            }
-            console.log("api req: ", requestData)
-                const response = await axios.post(`http://localhost:${PORT}/predict`, requestData, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-                })
-                const result = response.data
-                if(result) {
-                    console.log(result)
-                    navigate('/result', { state: { result: result } })
-                }
-        } else if(transcript === "") {
-            window.alert('Input is empty, Please try recording again before submitting')
-            setIsLoading(false)
-            setAudioFile(null)
         }
-    }
+        return null;
+    };
 
-    // Check the status of the Transcript
-    const checkStatusHandler = async () => {
-        setIsLoading(true)
+    const submitTranscriptionHandler = async () => {
+        setIsLoading(true);
+        const uploadedURL = await uploadAudioFile();
+        if (uploadedURL) {
+            try {
+                const res = await assembly.post("/transcript", { audio_url: uploadedURL });
+                setTranscriptID(res.data.id);
+                checkStatusHandler(res.data.id);
+            } catch (err) {
+                console.error(err);
+                setIsLoading(false);
+            }
+        } else {
+            window.alert('Error occurred while uploading your Audio. Please try recording again.');
+            setIsLoading(false);
+            setAudioFile(null);
+        }
+    };
+
+    const checkStatusHandler = async (id) => {
         try {
-            await assembly.get(`/transcript/${transcriptID}`).then(async (res) => {
-                await new Promise(resolve => setInterval(resolve, 5000));
-                setTranscriptData(res.data)
-                console.log("from checkstatushandler, ", transcriptData)
-            })
+            let status = "";
+            while (status !== "completed") {
+                const res = await assembly.get(`/transcript/${id}`);
+                setTranscriptData(res.data);
+                status = res.data.status;
+                if (status === "completed") {
+                    setTranscript(res.data.text);
+                    predictHandler(res.data.text);
+                    break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
         } catch (err) {
-            console.error(err)
+            console.error(err);
+            setIsLoading(false);
         }
-    }
+    };
+
+    const predictHandler = async (transcriptText) => {
+        if (transcriptText) {
+            const requestData = { data: transcriptText };
+            try {
+                const response = await axios.post(`http://localhost:${PORT}/predict`, requestData, {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const result = response.data;
+                if (result) {
+                    console.log(requestData, result)
+                    navigate('/result', { state: { result: result } });
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            window.alert('Input is empty, Please try recording again before submitting');
+            setIsLoading(false);
+            setAudioFile(null);
+        }
+    };
 
     return (
         <div className="recorder-container">
-            <h2 className="title">Audio Recorder</h2>
+            <h2 className="title">"Record your audio"</h2>
             <AudioTimer isRunning={isRecording} elapsedTime={elapsedTime} setElapsedTime={setElapsedTime} />
-
-            <ReactMic
-                record={isRecording}
-                className="sound-wave"
-                strokeColor="#000000"
-            />
-            {(audioFile && !transcript) && <audio ref={audioPlayer} src={blobURL} controls='controls' className="audio-element"/>}
 
             {!isRecording ?
                 <div className="button-container">
-                    <button onClick={startRecording} className="start-button">
+                    <button onClick={startRecording} className="style-button">
                         START
                     </button>
                 </div>
                 :
                 <div className="button-container">
-                    <button onClick={stopRecording} className="start-button">
+                    <button onClick={stopRecording} className="style-button">
                         STOP
                     </button>
                 </div>}
+
+            {(audioFile && !transcript) && <audio ref={audioPlayer} src={blobURL} controls='controls' className="audio-element" />}
+
             {isLoading ?
-            <div className="button-container">
-                <button className="start-button">Processing...</button>
-            </div>
-                : <div className="button-container">
-                <button onClick={submitTranscriptionHandler} className="start-button">SUBMIT</button>
-            </div>}
-            {transcriptData.status === "completed" && <p>{transcript}</p>}
+                <div className="button-container">
+                    <button className="style-button">Processing...</button>
+                </div>
+                : audioFile &&
+                <div className="button-container">
+                    <button onClick={submitTranscriptionHandler} className="style-button">SUBMIT</button>
+                </div>}
+            {transcriptData?.status === "completed" && <p>{transcript}</p>}
         </div>
-    )
+    );
 }
 
-export default App
+export default App;

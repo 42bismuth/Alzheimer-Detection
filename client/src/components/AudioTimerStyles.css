@@ -1,13 +1,54 @@
 .audio-timer {
-    font-size: 25px;
-    font-weight: bold;
+    margin: auto;
+    align-items: center;
 }
 
 .time {
     display: inline-block;
 }
 
-.seconds, .milliseconds {
+.seconds,
+.milliseconds {
     display: inline-block;
     margin-left: 4px;
+}
+
+.sound-wave {
+    width: 100%;
+    border-radius: 20px;
+    margin-top: 20px;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .sound-wave {
+        width: 100%;
+    }
+
+    .audio-timer {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .time,
+    .seconds,
+    .milliseconds {
+        display: flex;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 400px) {
+    .audio-timer {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .time,
+    .seconds,
+    .milliseconds {
+        display: flex;
+        margin-left: 0;
+        text-align: center;
+    }
 }

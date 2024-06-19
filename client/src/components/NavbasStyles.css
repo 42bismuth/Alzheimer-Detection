@@ -54,7 +54,7 @@
     display: none;
 }
 
-button{
+.NavbarItem button{
     padding: 0.5rem 1rem;
     white-space: nowrap;
     border-radius: 0.3rem;
@@ -65,7 +65,7 @@ button{
     transition: 0.2s ease-in-out;
 }
 
-button:hover{
+.NavbarItem button:hover{
     background-color: #151516;
     color: #fff;
 }
@@ -110,7 +110,7 @@ button:hover{
         background: #01959a;
         transition: none;
     }
-    button{
+    .NavbarItem button{
         display: none;
     } 
     .nav-links-mobile{
