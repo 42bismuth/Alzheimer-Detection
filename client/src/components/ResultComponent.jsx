@@ -15,7 +15,7 @@ const ResultComponent = () => {
             <h1>Prediction Analysis</h1>
             <div className="analysis">
                 <p>Prediction : { Prediction ? "Positive" : "Negative" }</p>
-                <p>Confidence : { Prediction ? Confidence*100 : (1-Confidence)*100 }%</p>
+                <p>Confidence : { Prediction ? Confidence*100 : ((1-Confidence)*100).toFixed(2) }%</p>
             </div>
             <div className="result">
                 { Prediction ? positive : negative }

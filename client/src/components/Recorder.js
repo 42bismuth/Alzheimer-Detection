@@ -127,8 +127,8 @@ const App = () => {
                 const result = response.data;
                 if (result) {
                     console.log(requestData, result)
-                    navigate('/result', { state: { result: result } });
                 }
+                navigate('/result', { state: { result: result } });
             } catch (err) {
                 console.error(err);
             } finally {
